@@ -181,10 +181,19 @@ class DraftBuilder:
 
             transition_id = ""
             if clip.transition:
-                transition = S.make_transition_material(clip.transition, self.profile)
+                transition = S.make_transition_material(
+                    clip.transition, self.profile, duration_sec=timeline.transition_duration_sec
+                )
                 materials["transitions"].append(transition)
                 config["transitions"].append(transition)
                 transition_id = transition["id"]
+
+            # 镜头缓慢推近/拉远，交替方向，避免画面死板
+            keyframes = []
+            if timeline.ken_burns:
+                keyframes = S.make_zoom_keyframes(
+                    clip.duration_sec, mode="in" if clip.index % 2 == 0 else "out"
+                )
 
             segment = S.make_video_segment(
                 material_id=material_cache[key]["id"],
@@ -195,6 +204,7 @@ class DraftBuilder:
                 volume=clip.volume,
                 profile=self.profile,
                 render_index=clip.index,
+                keyframes=keyframes,
             )
             if transition_id:
                 segment["extra_material_refs"].append(transition_id)
@@ -206,7 +216,8 @@ class DraftBuilder:
         subtitle_track = S.make_track("text", [], name="字幕")
         title_track = S.make_track("text", [], name="标题")
 
-        def add_text(text: str, start: float, duration: float, style: TextStyle, track: dict) -> None:
+        def add_text(text: str, start: float, duration: float, style: TextStyle, track: dict,
+                     animation_kind: str = "fade") -> None:
             if not text or duration <= 0:
                 return
             material = S.make_text_material(
@@ -221,6 +232,7 @@ class DraftBuilder:
                 background_alpha=style.background_alpha,
                 bold=style.bold,
                 has_shadow=style.has_shadow,
+                line_max_width=style.line_max_width,
             )
             animation = S.make_sticker_animation()
             materials["texts"].append(material)
@@ -234,13 +246,15 @@ class DraftBuilder:
                 position_x=style.position_x,
                 position_y=style.position_y,
                 profile=self.profile,
+                keyframes=S.make_text_intro_keyframes(animation_kind, duration),
             ))
 
-        # 片头标题：覆盖开场镜头
+        # 片头标题：覆盖开场镜头（弹入动画）
         title_duration = min(timeline.title_duration_sec, max(0.0, timeline.total_duration_sec))
-        add_text(timeline.title, 0.0, title_duration, self.brand_kit.title_style, title_track)
+        add_text(timeline.title, 0.0, title_duration, self.brand_kit.title_style, title_track,
+                 animation_kind="pop")
 
-        # 逐镜头字幕
+        # 逐镜头字幕（淡入）
         for clip in timeline.clips:
             add_text(
                 clip.subtitle,
@@ -250,11 +264,12 @@ class DraftBuilder:
                 subtitle_track,
             )
 
-        # 品牌落版
+        # 品牌落版（淡入 + 缓慢缩放呼吸）
         if timeline.outro_text:
             outro_duration = min(timeline.outro_duration_sec, timeline.total_duration_sec)
             outro_start = max(0.0, timeline.total_duration_sec - outro_duration)
-            add_text(timeline.outro_text, outro_start, outro_duration, self.brand_kit.outro_style, title_track)
+            add_text(timeline.outro_text, outro_start, outro_duration, self.brand_kit.outro_style,
+                     title_track, animation_kind="pulse")
 
         tracks = [subtitle_track]
         if title_track["segments"]:

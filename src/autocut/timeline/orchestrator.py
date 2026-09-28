@@ -26,6 +26,9 @@ logger = get_logger("timeline")
 
 _NUM_PREFIX = re.compile(r"^(\d+)")
 
+# 剪映内置基础转场（配置里 transitions 为空时的兜底池）
+DEFAULT_TRANSITIONS = ("叠化", "闪白", "推近", "拉远", "擦除", "雾化")
+
 
 @dataclass
 class SelectionReport:
@@ -133,6 +136,8 @@ class TimelineOrchestrator:
             title_duration_sec=round(title_duration_sec, 3),
             outro_text=outro_text,
             outro_duration_sec=round(outro_duration_sec, 3),
+            transition_duration_sec=round(self.video_cfg.transition_duration_sec, 3),
+            ken_burns=self.video_cfg.ken_burns,
             copywriting=copywriting,
             selected_shot_ids=[shot.id for shot in selected],
         )
@@ -265,6 +270,7 @@ class TimelineOrchestrator:
         clips: list[TimelineClip] = []
         cursor = 0.0
         subtitles = self._assign_subtitles(shots, copywriting)
+        previous_transition = ""
         for index, shot in enumerate(shots):
             clip_len = max(self.video_cfg.clip_min_sec, min(shot.duration_sec, self.video_cfg.clip_max_sec))
             start, end = _trim_window(shot.start_sec, shot.end_sec, clip_len)
@@ -274,6 +280,8 @@ class TimelineOrchestrator:
                 volume = 1.0
             else:
                 volume = 0.15 if shot.shot_type == ShotType.PROCESS else 0.0
+            transition = self._transition_for(index, previous_transition)
+            previous_transition = transition
             clips.append(TimelineClip(
                 index=index,
                 material_id=shot.material_id,
@@ -283,11 +291,28 @@ class TimelineOrchestrator:
                 target_start_sec=round(cursor, 3),
                 shot_type=shot.shot_type,
                 subtitle=subtitle,
-                transition=self.video_cfg.transition if index > 0 else "",
+                transition=transition,
                 volume=volume,
             ))
             cursor += end - start
         return clips, cursor
+
+    def _transition_for(self, index: int, previous: str) -> str:
+        """为每个切换点选转场：首镜头硬切，之后按 preset 轮换，避免相邻重复。
+
+        mixed 模式下从 video.transitions 池里轮换（跳过与上一个相同的），
+        让整条片子的换场有节奏变化，而不是一路叠化到底。
+        """
+        cfg = self.video_cfg
+        if index == 0 or cfg.transition_preset == "off":
+            return ""
+        if cfg.transition_preset != "mixed":
+            return cfg.transition or ""
+        pool = [item for item in (cfg.transitions or DEFAULT_TRANSITIONS) if item]
+        if not pool:
+            return cfg.transition or ""
+        candidates = [item for item in pool if item != previous] or pool
+        return candidates[index % len(candidates)]
 
     @staticmethod
     def _describe_shot(shot: Shot) -> dict:

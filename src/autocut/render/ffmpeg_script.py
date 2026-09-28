@@ -103,7 +103,25 @@ def build_plan(timeline: Timeline, include_subtitles: bool = True) -> RenderPlan
                 "text": clip.subtitle,
                 "start_sec": clip.target_start_sec,
                 "end_sec": round(clip.target_start_sec + clip.duration_sec, 3),
+                "role": "subtitle",
             })
+
+    # 片头标题 / 落版（兜底通道也保持层次感：标题靠上、落版居中）
+    if include_subtitles and timeline.title:
+        plan.subtitles.append({
+            "text": timeline.title,
+            "start_sec": 0.0,
+            "end_sec": round(min(timeline.title_duration_sec, plan.duration_sec), 3),
+            "role": "title",
+        })
+    if include_subtitles and timeline.outro_text:
+        outro_duration = min(timeline.outro_duration_sec, plan.duration_sec)
+        plan.subtitles.append({
+            "text": timeline.outro_text,
+            "start_sec": round(max(0.0, plan.duration_sec - outro_duration), 3),
+            "end_sec": round(plan.duration_sec, 3),
+            "role": "outro",
+        })
 
     if timeline.music:
         plan.music = {
@@ -124,9 +142,13 @@ def _clip_commands(plan: RenderPlan) -> tuple[list[str], list[str]]:
     ps_commands: list[str] = []
     sh_commands: list[str] = []
     for clip in plan.clips:
+        duration = clip["duration_sec"]
+        # 首尾淡入淡出：兜底通道没有剪映转场，用它模拟柔和换场
+        fade_tail = round(max(0.0, duration - FADE_SEC), 3)
         vf = (
             f"scale={plan.width}:{plan.height}:force_original_aspect_ratio=increase,"
-            f"crop={plan.width}:{plan.height},fps={plan.fps},setsar=1"
+            f"crop={plan.width}:{plan.height},fps={plan.fps},setsar=1,"
+            f"fade=t=in:st=0:d={FADE_SEC},fade=t=out:st={fade_tail}:d={FADE_SEC}"
         )
         ps = (
             f'ffmpeg -hide_banner -loglevel error -y -ss {clip["source_start_sec"]} '
@@ -145,6 +167,17 @@ def _clip_commands(plan: RenderPlan) -> tuple[list[str], list[str]]:
     return ps_commands, sh_commands
 
 
+# 角色 → (字号取画布高的倒数, 纵向位置, 字体色)。配色跟品牌套件一致：暖金/奶油米黄，不用纯白
+ROLE_STYLES = {
+    "title": (24, 0.16, "#FFD98A"),
+    "subtitle": (32, 0.80, "#FFE9B8"),
+    "outro": (28, 0.50, "#FFD76A"),
+}
+
+# 片段首尾淡入淡出，让 concat 出来的片子也有柔和换场（兜底通道没有剪映转场可用）
+FADE_SEC = 0.25
+
+
 def _subtitle_filter(plan: RenderPlan) -> str:
     if not plan.subtitles or not plan.font_path:
         return ""
@@ -152,9 +185,17 @@ def _subtitle_filter(plan: RenderPlan) -> str:
     parts = []
     for subtitle in plan.subtitles:
         text = _escape_drawtext(subtitle["text"])
+        div, y_ratio, color = ROLE_STYLES.get(subtitle.get("role", "subtitle"), ROLE_STYLES["subtitle"])
+        fontsize = max(28, plan.height // div)
+        start = subtitle["start_sec"]
+        # 入场动画：0.4s 淡入 + 上浮 2% 画布高；浅色字配半透明深底保证任何画面都清晰
+        alpha_expr = f"if(lt(t,{start}+0.4),(t-{start})/0.4,1)"
+        y_expr = f"h*{y_ratio}-h*0.02*min(1,(t-{start})/0.4)"
         parts.append(
-            f"drawtext=fontfile='{font}':text='{text}':fontcolor=white:fontsize={max(24, plan.width // 26)}:"
-            f"borderw=3:bordercolor=black@0.7:x=(w-text_w)/2:y=h*0.78:"
+            f"drawtext=fontfile='{font}':text='{text}':fontcolor={color}:fontsize={fontsize}:"
+            f"borderw=3:bordercolor=0x33200C@0.75:x=(w-text_w)/2:y='{y_expr}':"
+            f"alpha='{alpha_expr}':"
+            f"box=1:boxcolor=0x2A1608@0.30:boxborderw={max(8, plan.height // 96)}:"
             f"enable='between(t,{subtitle['start_sec']},{subtitle['end_sec']})'"
         )
     return ",".join(parts)

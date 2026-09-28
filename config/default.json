@@ -12,8 +12,11 @@
     "max_clips": 12,
     "min_clips": 5,
     "opening_sec": 3.0,
-    "transition": "",
-    "transition_duration_sec": 0.5
+    "transition": "叠化",
+    "transition_duration_sec": 0.5,
+    "transition_preset": "mixed",
+    "transitions": ["叠化", "闪白", "推近", "拉远", "擦除", "雾化"],
+    "ken_burns": true
   },
   "selection": {
     "min_quality_score": 35.0,

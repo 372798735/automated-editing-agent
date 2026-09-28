@@ -188,6 +188,81 @@ def make_sticker_animation(animations: list | None = None) -> dict:
     }
 
 
+# ---------------------------------------------------------------------------
+# 文字关键帧动画（common_keyframes 实现，不依赖剪映云端动画资源）
+# ---------------------------------------------------------------------------
+
+
+def _keyframe(time_us: int, value: float) -> dict:
+    control = {"alpha": 1.0, "id": "", "mode": 0, "time_offset": 0.0, "x": 0.0, "y": 0.0}
+    return {
+        "alpha": 1.0,
+        "curveType": "Line",
+        "id": new_id(),
+        "kf_manual_type": 0,
+        "left_control": dict(control),
+        "material_id": "",
+        "right_control": dict(control),
+        "time": time_us,
+        "value": value,
+    }
+
+
+def _keyframe_list(property_type: str, points: list[tuple[int, float]]) -> dict:
+    return {
+        "id": new_id(),
+        "keyframe_list": [_keyframe(t, v) for t, v in points],
+        "material_id": "",
+        "property_type": property_type,
+        "segment_id": "",
+        "type": "sticker_animation",
+    }
+
+
+def make_text_intro_keyframes(kind: str, duration_sec: float) -> list[dict]:
+    """文字入场动画关键帧。
+
+    kind:
+      "pop"   = 淡入 + 放大回弹（标题用）
+      "fade"  = 淡入（逐镜头字幕用）
+      "pulse" = 淡入 + 缓慢缩放呼吸（落版用）
+    """
+    duration_us = sec_to_us(max(0.2, duration_sec))
+    fade_us = min(sec_to_us(0.3), duration_us)
+    if kind == "pop":
+        over_us = min(sec_to_us(0.35), duration_us)
+        settle_us = min(sec_to_us(0.55), duration_us)
+        return [
+            _keyframe_list("KFTypeAlpha", [(0, 0.0), (fade_us, 1.0)]),
+            _keyframe_list("KFTypeScaleX", [(0, 0.5), (over_us, 1.08), (settle_us, 1.0)]),
+            _keyframe_list("KFTypeScaleY", [(0, 0.5), (over_us, 1.08), (settle_us, 1.0)]),
+        ]
+    if kind == "pulse":
+        fade_us = min(sec_to_us(0.4), duration_us)
+        return [
+            _keyframe_list("KFTypeAlpha", [(0, 0.0), (fade_us, 1.0)]),
+            _keyframe_list("KFTypeScaleX", [(0, 0.96), (duration_us // 2, 1.04), (duration_us, 1.0)]),
+            _keyframe_list("KFTypeScaleY", [(0, 0.96), (duration_us // 2, 1.04), (duration_us, 1.0)]),
+        ]
+    return [_keyframe_list("KFTypeAlpha", [(0, 0.0), (fade_us, 1.0)])]
+
+
+def make_zoom_keyframes(duration_sec: float, mode: str = "in") -> list[dict]:
+    """镜头缓慢推近/拉远（Ken Burns），让静态画面也有运动感。
+
+    mode: "in" = 1.0→1.06 推近；"out" = 1.06→1.0 拉远。
+    """
+    duration_us = sec_to_us(max(0.5, duration_sec))
+    if mode == "out":
+        points = [(0, 1.06), (duration_us, 1.0)]
+    else:
+        points = [(0, 1.0), (duration_us, 1.06)]
+    return [
+        _keyframe_list("KFTypeScaleX", points),
+        _keyframe_list("KFTypeScaleY", points),
+    ]
+
+
 @dataclass
 class MaterialRefs:
     """一个视频片段需要挂接的附属素材 id 集合。"""
@@ -287,6 +362,7 @@ def make_text_material(
     background_alpha: float = 0.0,
     bold: bool = False,
     has_shadow: bool = False,
+    line_max_width: float = 0.85,
 ) -> dict:
     return {
         "add_type": 0,
@@ -325,7 +401,7 @@ def make_text_material(
         "font_title": "none",
         "font_url": "",
         "fonts": [],
-        "force_apply_line_max_width": False,
+        "force_apply_line_max_width": True,
         "global_alpha": 1.0,
         "group_id": "",
         "has_shadow": has_shadow,
@@ -339,7 +415,7 @@ def make_text_material(
         "layer_weight": profile.text_layer_weight,
         "letter_spacing": 0.0,
         "line_feed": 1,
-        "line_max_width": 0.82,
+        "line_max_width": line_max_width,
         "line_spacing": line_spacing,
         "lyrics_template_info": None,
         "name": "",
@@ -458,12 +534,17 @@ def make_audio_material(
     }
 
 
-def make_transition_material(name: str = "叠化", profile: SchemaProfile | None = None) -> dict:
+def make_transition_material(
+    name: str = "叠化",
+    profile: SchemaProfile | None = None,
+    duration_sec: float | None = None,
+) -> dict:
     profile = profile or SchemaProfile()
+    duration_us = sec_to_us(duration_sec) if duration_sec is not None else profile.transition_duration_us
     return {
         "category_id": "",
         "category_name": "转场",
-        "duration": profile.transition_duration_us,
+        "duration": duration_us,
         "effect_id": "",
         "id": new_id(),
         "is_overlap": True,
@@ -488,6 +569,7 @@ def make_video_segment(
     volume: float,
     profile: SchemaProfile,
     render_index: int = 0,
+    keyframes: list[dict] | None = None,
 ) -> dict:
     return {
         "cartoon": False,
@@ -498,7 +580,7 @@ def make_video_segment(
             "scale": {"x": 1.0, "y": 1.0},
             "transform": {"x": 0.0, "y": 0.0},
         },
-        "common_keyframes": [],
+        "common_keyframes": keyframes or [],
         "enable_adjust": True,
         "enable_color_correct_adjust": False,
         "enable_color_curves": True,
@@ -548,6 +630,7 @@ def make_text_segment(
     position_y: float,
     profile: SchemaProfile,
     render_index: int = 14000,
+    keyframes: list[dict] | None = None,
 ) -> dict:
     return {
         "clip": {
@@ -557,7 +640,7 @@ def make_text_segment(
             "scale": {"x": 1.0, "y": 1.0},
             "transform": {"x": position_x, "y": position_y},
         },
-        "common_keyframes": [],
+        "common_keyframes": keyframes or [],
         "enable_adjust": False,
         "extra_material_refs": [animation_id],
         "group_id": "",

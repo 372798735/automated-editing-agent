@@ -77,8 +77,13 @@ class VideoConfig:
     max_clips: int = 12
     min_clips: int = 5
     opening_sec: float = 3.0
-    transition: str = ""              # 空 = 硬切
+    transition: str = "叠化"                # 单一转场（preset=single 时用）
     transition_duration_sec: float = 0.5
+    transition_preset: str = "mixed"        # mixed=轮换多种 / single=只用 transition / off=硬切
+    transitions: list[str] = field(default_factory=lambda: [
+        "叠化", "闪白", "推近", "拉远", "擦除", "雾化",
+    ])
+    ken_burns: bool = True                  # 镜头缓慢推近/拉远（画面动感）
 
     def validate(self) -> None:
         if self.target_min_sec <= 0 or self.target_max_sec <= self.target_min_sec:
@@ -87,6 +92,10 @@ class VideoConfig:
             raise ConfigError("video.clip_min_sec / clip_max_sec 非法")
         if self.max_clips < self.min_clips:
             raise ConfigError("video.max_clips 不能小于 min_clips")
+        if not 0 < self.transition_duration_sec <= 2.0:
+            raise ConfigError("video.transition_duration_sec 应在 (0, 2] 秒之间")
+        if self.transition_preset not in ("mixed", "single", "off"):
+            raise ConfigError("video.transition_preset 只能是 mixed / single / off")
 
 
 @dataclass

@@ -88,6 +88,7 @@ def render(
               <span class="mono">#{clip.index + 1}</span>
               <span class="muted">{_esc(_fmt_time(clip.target_start_sec))} · {clip.duration_sec:.1f}s</span>
               <span class="muted">占比 {duration_pct:.0f}%</span>
+              {'<span class="badge" style="background:#F1EFE8;color:#6B6A66;border-color:#D6D4CE">换场 ' + _esc(clip.transition) + '</span>' if clip.transition else ''}
             </div>
             <div class="subtitle">{_esc(clip.subtitle) or '<span class="muted">（本镜头无字幕）</span>'}</div>
             <div class="meta muted mono">
@@ -107,6 +108,7 @@ def render(
         )
 
     tags_html = " ".join(f'<span class="tag">#{_esc(tag)}</span>' for tag in (timeline.copywriting.hashtags if timeline.copywriting else []))
+    transition_count = len([clip for clip in timeline.clips if clip.transition])
 
     selected = (selection_report or {}).get("selected", [])
     rows = "".join(
@@ -175,6 +177,9 @@ def render(
     <div class="metric"><div class="value">{timeline.width}×{timeline.height}</div><div class="label">画布</div></div>
     <div class="metric"><div class="value">{timeline.fps:g}</div><div class="label">帧率</div></div>
     <div class="metric"><div class="value">{len(selected)}</div><div class="label">入选镜头</div></div>
+    <div class="metric"><div class="value">{transition_count}</div><div class="label">换场转场</div></div>
+    <div class="metric"><div class="value">{timeline.transition_duration_sec:g}s</div><div class="label">转场时长</div></div>
+    <div class="metric"><div class="value">{'开' if timeline.ken_burns else '关'}</div><div class="label">镜头推拉</div></div>
   </div>
   <div class="bar">{''.join(bar_html)}</div>
 </header>

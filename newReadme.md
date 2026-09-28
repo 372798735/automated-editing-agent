@@ -241,7 +241,9 @@ JPEG 帧抽取（供 VLM）：`-c:v mjpeg -q:v 4 -f image2 -`，输出原始 JPE
 - 视频轨：每个片段挂接 canvas（画布）、speed（变速）、sound_channel_mapping（声道）、vocal_separation（人声分离）四个附属素材
 - 文本轨：分字幕轨和标题轨，文本内容使用带内联样式的 JSON 字符串（`json_text_content`）
 - 音频轨：BGM + 音量曲线
-- 转场：叠化（可配置），duration=500ms
+- 转场：`video.transition_preset` 控制模式——`mixed` 从 `video.transitions` 池轮换（叠化/闪白/推近/拉远/擦除/雾化…），自动跳过与上一个相同的转场；`single` 只用 `video.transition`；`off` 全硬切。时长取 `video.transition_duration_sec`（默认 0.5s）
+- 画面动感：每个片段自动加 Ken Burns 关键帧（奇偶交替 1.0→1.06 推近 / 1.06→1.0 拉远），由 `video.ken_burns` 开关
+- 文字动画：标题=淡入+放大回弹，字幕=淡入，落版=淡入+呼吸缩放（均以 common_keyframes 写入，不依赖剪映云端资源）
 
 **草稿一致性校验器**（`validator.py`）—— 6 项校验：
 

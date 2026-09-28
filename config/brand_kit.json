@@ -1,9 +1,9 @@
 {
-  "_comment": "品牌套件：控制片头标题、逐镜头字幕、落版的样式。改完保存，重启 autocut.bat 后重新生成草稿即可生效。颜色用 #RRGGBB；position_x/position_y 为归一化坐标（0,0 为画面中心，y 负值靠上、正值靠下）；alignment 1=居中；bold 加粗；has_shadow 阴影（提升可读性）。",
+  "_comment": "品牌套件：控制片头标题、逐镜头字幕、落版的样式。改完保存，重启 autocut.bat 后重新生成草稿即可生效。颜色用 #RRGGBB（建议用暖色系，避免纯白 #FFFFFF）；position_x/position_y 为归一化坐标（0,0 为画面中心，y 负值靠上、正值靠下）；alignment 1=居中；bold 加粗；has_shadow 阴影（提升可读性）；line_max_width 文本最大宽度占画布比例（超出自动换行，0.85=85%，防溢出）；font_size 建议 7~10，过大容易超宽溢出。动画：标题自动弹入、字幕自动淡入、落版自动淡入+呼吸缩放，无需配置。",
   "name": "default",
   "title_style": {
-    "font_size": 12,
-    "text_color": "#FFD76A",
+    "font_size": 9,
+    "text_color": "#FFD98A",
     "border_color": "#4A2B10",
     "border_width": 0.12,
     "alignment": 1,
@@ -12,33 +12,36 @@
     "line_spacing": 0.02,
     "background_alpha": 0.0,
     "bold": true,
-    "has_shadow": true
+    "has_shadow": true,
+    "line_max_width": 0.85
   },
   "subtitle_style": {
     "font_size": 8,
-    "text_color": "#FFFFFF",
-    "border_color": "#1A1A1A",
-    "border_width": 0.10,
+    "text_color": "#FFE9B8",
+    "border_color": "#33200C",
+    "border_width": 0.12,
     "alignment": 1,
     "position_x": 0.0,
     "position_y": 0.62,
     "line_spacing": 0.02,
     "background_alpha": 0.0,
     "bold": false,
-    "has_shadow": true
+    "has_shadow": true,
+    "line_max_width": 0.85
   },
   "outro_style": {
-    "font_size": 10,
+    "font_size": 8.5,
     "text_color": "#FFD76A",
     "border_color": "#4A2B10",
-    "border_width": 0.10,
+    "border_width": 0.1,
     "alignment": 1,
     "position_x": 0.0,
     "position_y": 0.0,
     "line_spacing": 0.02,
-    "background_alpha": 0.15,
+    "background_alpha": 0.18,
     "bold": true,
-    "has_shadow": true
+    "has_shadow": true,
+    "line_max_width": 0.85
   },
   "outro_text": "专业地板铺装｜免费上门量尺",
   "title_duration_sec": 2.5,

@@ -174,6 +174,8 @@ class Timeline(SerializableMixin):
     title_duration_sec: float = 2.5
     outro_text: str = ""
     outro_duration_sec: float = 2.5
+    transition_duration_sec: float = 0.5      # 每个转场的持续时间（秒）
+    ken_burns: bool = True                    # 镜头是否做缓慢推近/拉远
     copywriting: Copywriting | None = None
     selected_shot_ids: list[str] = field(default_factory=list)
 

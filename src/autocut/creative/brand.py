@@ -17,7 +17,7 @@ HEX_COLOR_PATTERN = r"^#[0-9A-Fa-f]{6}$"
 
 @dataclass
 class TextStyle:
-    font_size: int = 8
+    font_size: float = 8
     text_color: str = "#FFFFFF"
     border_color: str = "#000000"
     border_width: float = 0.08
@@ -28,6 +28,7 @@ class TextStyle:
     background_alpha: float = 0.0
     bold: bool = False
     has_shadow: bool = True
+    line_max_width: float = 0.85       # 文本最大宽度占画布比例，超出自动换行（防溢出）
 
     def to_dict(self) -> dict:
         return {
@@ -42,25 +43,26 @@ class TextStyle:
             "background_alpha": self.background_alpha,
             "bold": self.bold,
             "has_shadow": self.has_shadow,
+            "line_max_width": self.line_max_width,
         }
 
 
 @dataclass
 class BrandKit:
     name: str = "default"
-    # 标题：暖金色加粗（地板/家装暖色调），深棕描边压得住画面
+    # 标题：亮暖金加粗（地板/家装暖色调），深棕描边压得住画面；字号 9 保证 12 字内不溢出
     title_style: TextStyle = field(default_factory=lambda: TextStyle(
-        font_size=12, text_color="#FFD76A", border_color="#4A2B10",
+        font_size=9, text_color="#FFD98A", border_color="#4A2B10",
         border_width=0.12, bold=True, position_y=-0.55))
-    # 字幕：白字 + 深色描边 + 轻阴影，任何画面上都清晰
+    # 字幕：奶油米黄（不用纯白，暖色调更耐看） + 深棕描边 + 阴影，任何画面上都清晰
     subtitle_style: TextStyle = field(default_factory=lambda: TextStyle(
-        font_size=8, text_color="#FFFFFF", border_color="#1A1A1A",
-        border_width=0.10, position_y=0.62))
+        font_size=8, text_color="#FFE9B8", border_color="#33200C",
+        border_width=0.12, position_y=0.62))
     outro_text: str = ""
-    # 落版：与标题呼应的金色
+    # 落版：与标题呼应的金色 + 半透明底衬，画面中央收尾更有仪式感
     outro_style: TextStyle = field(default_factory=lambda: TextStyle(
-        font_size=10, text_color="#FFD76A", border_color="#4A2B10",
-        border_width=0.10, background_alpha=0.15, position_y=0.0))
+        font_size=8.5, text_color="#FFD76A", border_color="#4A2B10",
+        border_width=0.10, background_alpha=0.18, position_y=0.0))
     title_duration_sec: float = 2.5
     outro_duration_sec: float = 2.5
 
@@ -83,15 +85,15 @@ class BrandKit:
         return cls(
             name=data.get("name", "default"),
             title_style=style(data.get("title_style"), TextStyle(
-                font_size=12, text_color="#FFD76A", border_color="#4A2B10",
+                font_size=9, text_color="#FFD98A", border_color="#4A2B10",
                 border_width=0.12, bold=True, position_y=-0.55)),
             subtitle_style=style(data.get("subtitle_style"), TextStyle(
-                font_size=8, text_color="#FFFFFF", border_color="#1A1A1A",
-                border_width=0.10, position_y=0.62)),
+                font_size=8, text_color="#FFE9B8", border_color="#33200C",
+                border_width=0.12, position_y=0.62)),
             outro_text=data.get("outro_text", ""),
             outro_style=style(data.get("outro_style"), TextStyle(
-                font_size=10, text_color="#FFD76A", border_color="#4A2B10",
-                border_width=0.10, background_alpha=0.15, position_y=0.0)),
+                font_size=8.5, text_color="#FFD76A", border_color="#4A2B10",
+                border_width=0.10, background_alpha=0.18, position_y=0.0)),
             title_duration_sec=float(data.get("title_duration_sec", 2.5)),
             outro_duration_sec=float(data.get("outro_duration_sec", 2.5)),
         )
