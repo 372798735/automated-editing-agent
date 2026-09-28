@@ -1,0 +1,55 @@
+{
+  "_comment": "文案模板库。可用变量：{project} {community} {customer} {craft} {month} {brand} {area} {advantage}",
+  "templates": [
+    {
+      "id": "floor_showcase",
+      "name": "工程展示（默认）",
+      "style": "工程实拍展示，客观描述施工过程与效果",
+      "title": "{community}{craft}施工现场记录",
+      "subtitles": [
+        "{community}铺装开工，先做地面找平复尺",
+        "按铺装方向排版，起铺点定位",
+        "地板依次锁扣拼接，缝隙均匀",
+        "边角裁切收边，贴合墙面不留缝",
+        "细节处理：{advantage}",
+        "{craft}完成，整体效果展示",
+        "每一步都实拍记录，欢迎实地看样"
+      ],
+      "hashtags": ["地板铺装", "装修实拍", "施工现场", "全屋通铺", "家装分享"],
+      "outro": "{brand}｜专业地板铺装"
+    },
+    {
+      "id": "floor_process",
+      "name": "工艺细节向",
+      "style": "突出工艺与细节，适合技术流账号",
+      "title": "{craft}｜工艺细节实拍",
+      "subtitles": [
+        "基层处理到位，地板才不会有异响",
+        "排版先算料，避免出现窄边条",
+        "锁扣对位拼接，敲击力均匀",
+        "门口过渡收边，处理细节",
+        "缩缝预留，给地板留伸缩空间",
+        "完工效果：{advantage}",        "工地日常记录，看得见的手艺"
+      ],
+      "hashtags": ["地板工艺", "装修细节", "施工日记", "木地板", "装修避坑"],
+      "outro": "{brand}｜看得见的手艺"
+    },
+    {
+      "id": "floor_customer",
+      "name": "业主案例向",
+      "style": "以业主案例为线索，适合口碑获客",
+      "title": "{community}{customer}家{craft}完工",
+      "subtitles": [
+        "{community}{customer}家开始铺装",
+        "现场复尺排版，确认铺装方向",
+        "地板铺装中，边铺边清理",
+        "墙角收边处理，细节到位",
+        "完工验收：{advantage}",
+        "{customer}验收完成，效果满意",
+        "同小区可约看现场，欢迎咨询"
+      ],
+      "hashtags": ["装修日记", "业主案例", "地板铺装", "同城装修", "装修记录"],
+      "outro": "{brand}｜同城可约看样"
+    }
+  ]
+}

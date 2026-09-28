@@ -1,0 +1,22 @@
+# AutoCut 可选依赖清单
+#
+# 核心流水线（素材接入[本地/mock] → 镜头分析 → 文案 → 配乐 → 时间线 → 草稿 → 预览）
+# 只用 Python 标准库即可运行，本文件列出的都是「增强能力」，按需安装。
+#
+#   pip install -r requirements-optional.txt
+
+# 剪映云空间自动同步（浏览器自动化）
+playwright>=1.40
+
+# YAML 配置与文案模板（不装则使用 .json）
+pyyaml>=6.0
+
+# 开发与测试
+pytest>=8.0
+ruff>=0.5
+
+# 说明：抽帧分析、缩略图、渲染脚本依赖 FFmpeg 可执行文件（不是 Python 包）
+#   winget install Gyan.FFmpeg
+#
+# 说明：文案润色 / 多模态镜头理解走 OpenAI 兼容接口，仅需配置环境变量
+#   set AUTOCUT_LLM_API_KEY=sk-xxx

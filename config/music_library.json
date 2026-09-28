@@ -1,0 +1,23 @@
+{
+  "_comment": "音乐资产库。把你自己的音乐放到 assets/music/，再在这里登记（mood: clean 干净利落 / warm 温暖生活）。duration_sec 填 0 时脚本会按 128kbps 估算。当前两个文件由 scripts/make_placeholder_music.py 生成，仅用于功能验证，正式使用请替换为有商用授权的音乐。",
+  "music": [
+    {
+      "id": "bgm-clean-01",
+      "name": "干净利落（占位）",
+      "path": "assets/music/clean_01.wav",
+      "duration_sec": 61.6,
+      "bpm": 108,
+      "mood": "clean",
+      "loudness_ok": true
+    },
+    {
+      "id": "bgm-warm-01",
+      "name": "温暖生活（占位）",
+      "path": "assets/music/warm_01.wav",
+      "duration_sec": 62.4,
+      "bpm": 92,
+      "mood": "warm",
+      "loudness_ok": true
+    }
+  ]
+}

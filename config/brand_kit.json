@@ -1,0 +1,46 @@
+{
+  "_comment": "品牌套件：控制片头标题、逐镜头字幕、落版的样式。改完保存，重启 autocut.bat 后重新生成草稿即可生效。颜色用 #RRGGBB；position_x/position_y 为归一化坐标（0,0 为画面中心，y 负值靠上、正值靠下）；alignment 1=居中；bold 加粗；has_shadow 阴影（提升可读性）。",
+  "name": "default",
+  "title_style": {
+    "font_size": 12,
+    "text_color": "#FFD76A",
+    "border_color": "#4A2B10",
+    "border_width": 0.12,
+    "alignment": 1,
+    "position_x": 0.0,
+    "position_y": -0.55,
+    "line_spacing": 0.02,
+    "background_alpha": 0.0,
+    "bold": true,
+    "has_shadow": true
+  },
+  "subtitle_style": {
+    "font_size": 8,
+    "text_color": "#FFFFFF",
+    "border_color": "#1A1A1A",
+    "border_width": 0.10,
+    "alignment": 1,
+    "position_x": 0.0,
+    "position_y": 0.62,
+    "line_spacing": 0.02,
+    "background_alpha": 0.0,
+    "bold": false,
+    "has_shadow": true
+  },
+  "outro_style": {
+    "font_size": 10,
+    "text_color": "#FFD76A",
+    "border_color": "#4A2B10",
+    "border_width": 0.10,
+    "alignment": 1,
+    "position_x": 0.0,
+    "position_y": 0.0,
+    "line_spacing": 0.02,
+    "background_alpha": 0.15,
+    "bold": true,
+    "has_shadow": true
+  },
+  "outro_text": "专业地板铺装｜免费上门量尺",
+  "title_duration_sec": 2.5,
+  "outro_duration_sec": 2.5
+}

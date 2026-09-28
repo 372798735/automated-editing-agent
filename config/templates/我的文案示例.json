@@ -1,0 +1,22 @@
+{
+  "_comment": "自定义文案模板示例：复制这个文件改名放本目录即可，下拉框自动出现。{community}=小区、{customer}=客户称呼、{craft}=工艺、{month}=月份、{brand}=品牌，这些变量会从项目名自动解析填入。id 和内置模板相同（floor_showcase/floor_process/floor_customer）时覆盖内置。",
+  "templates": [
+    {
+      "id": "my_style_01",
+      "name": "我的风格（示例）",
+      "style": "warm",
+      "title": "{community}完工｜{craft}实拍",
+      "subtitles": [
+        "开工前先看现场",
+        "地面找平是关键",
+        "{craft}施工中",
+        "接缝处细节实拍",
+        "{community}{customer}家验收",
+        "平整度直接看效果",
+        "完工交付，满意收工"
+      ],
+      "hashtags": ["地板铺装", "{craft}", "{community}", "装修实拍"],
+      "outro": "专业{craft}｜免费上门量尺"
+    }
+  ]
+}

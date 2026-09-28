@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autocut-agent"
+version = "0.1.0"
+description = "面向剪映云空间素材的地板铺装短视频智能剪辑流水线"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+dependencies = []
+
+[project.optional-dependencies]
+# 云空间自动同步（唯一需要安装的第三方依赖，按需启用）
+cloud = ["playwright>=1.40"]
+# YAML 配置与模板支持
+yaml = ["pyyaml>=6.0"]
+# 开发与测试（测试本身用标准库 unittest，pytest 仅提供更好的输出）
+dev = ["pytest>=8.0", "ruff>=0.5"]
+
+[project.scripts]
+autocut = "autocut.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]

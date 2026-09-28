@@ -1,0 +1,60 @@
+{
+  "workspace": "workspace",
+  "log_level": "INFO",
+  "video": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30.0,
+    "target_min_sec": 25.0,
+    "target_max_sec": 45.0,
+    "clip_min_sec": 2.0,
+    "clip_max_sec": 6.0,
+    "max_clips": 12,
+    "min_clips": 5,
+    "opening_sec": 3.0,
+    "transition": "",
+    "transition_duration_sec": 0.5
+  },
+  "selection": {
+    "min_quality_score": 35.0,
+    "min_shot_sec": 1.5,
+    "dedupe_same_material": true,
+    "max_clips_per_material": 2,
+    "detail_insert_ratio": 0.35,
+    "require_hook": true,
+    "fallback_fill": true
+  },
+  "analysis": {
+    "enabled": true,
+    "provider": "heuristic",
+    "frames_per_shot": 3,
+    "keyframe_interval_sec": 2.0,
+    "min_shot_sec": 2.0,
+    "max_shot_sec": 8.0
+  },
+  "llm": {
+    "enabled": false,
+    "base_url": "https://api.deepseek.com/v1",
+    "api_key_env": "AUTOCUT_LLM_API_KEY",
+    "model": "deepseek-chat",
+    "timeout_sec": 60,
+    "temperature": 0.8,
+    "max_retries": 2,
+    "vision_model": "qwen-vl-max",
+    "vision_enabled": false
+  },
+  "creative": {
+    "template_file": "config/copy_templates.json",
+    "brand_kit_file": "config/brand_kit.json",
+    "music_library_file": "config/music_library.json",
+    "default_template_id": "floor_showcase",
+    "banned_words": ["最好", "第一", "国家级", "绝对", "100%", "永久", "根治"],
+    "max_hashtags": 5
+  },
+  "draft": {
+    "draft_root": "",
+    "schema_profile": "jianying_5_9",
+    "write_preview_html": true,
+    "emit_render_script": true
+  }
+}

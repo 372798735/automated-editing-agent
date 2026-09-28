@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# 工作区产物（素材、草稿、预览、日志）
+workspace/
+
+# 剪映云空间登录态与调试产物（含凭据，绝不入库）
+.auth/
+debug/
+config/capcut_selectors.json
+
+# 本地环境
+.env
+
+# 生成的占位音乐（体积大，用脚本重新生成即可）
+# 如需保留请注释掉以下两行
+assets/music/*.wav

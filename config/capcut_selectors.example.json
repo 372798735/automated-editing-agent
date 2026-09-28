@@ -1,0 +1,13 @@
+{
+  "_comment": "剪映云空间选择器校准文件（模板）。执行 `autocut capcut-record` 后，打开 workspace/debug/capcut_network.json 与 capcut_page.html，把真实的选择器/接口规律填到这里，然后把本文件复制为 capcut_selectors.json。未校准前 capcut-web 源会明确报错而不是静默失败。",
+  "cloud_url": "https://www.jianying.com/space",
+  "month_item": "[data-autocut-month]",
+  "project_item": "[data-autocut-project]",
+  "material_item": "[data-autocut-material]",
+  "download_button": "[data-autocut-download]",
+  "_notes": [
+    "选择器尽量用属性锚点（如 data-* / aria-label / 稳定的 class 片段），避免依赖易变的哈希 class。",
+    "如果页面没有可用的属性锚点，可以在录制结果里找到列表接口（XHR），改造成接口直连方案，速度快且更稳。",
+    "文件下载若走的是带鉴权的直链，可复用浏览器上下文的 cookies 用 request.get 拉取，避免逐个点下载按钮。"
+  ]
+}

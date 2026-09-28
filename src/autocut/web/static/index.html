@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoCut 操作台 · 地板铺装视频智能剪辑</title>
+<style>
+  :root { color-scheme: light; --line:#E5E3DE; --ink:#2C2C2A; --muted:#6B6A66;
+          --hint:#9A9892; --accent:#185FA5; --accent-bg:#E6F1FB; --ok:#0F6E56;
+          --ok-bg:#E1F5EE; --warn:#854F0B; --warn-bg:#FAEEDA; --err:#A32D2D; --err-bg:#FCEBEB; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#FBFAF8; color:var(--ink);
+         font-family:"Microsoft YaHei","PingFang SC",-apple-system,"Segoe UI",sans-serif;
+         font-size:14px; line-height:1.6; }
+  .wrap { max-width:1180px; margin:0 auto; padding:26px 26px 70px; }
+  h1 { font-size:23px; font-weight:600; margin:0 0 4px; }
+  h2 { font-size:15px; font-weight:600; margin:0 0 10px; }
+  h3 { font-size:13px; font-weight:600; margin:0 0 6px; }
+  .muted { color:var(--muted); }
+  .hint { color:var(--hint); font-size:12px; }
+  .mono { font-family:"Cascadia Mono",Consolas,monospace; font-size:12px; }
+  .top { border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:20px;
+         display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap; }
+  .caps { display:flex; gap:8px; flex-wrap:wrap; }
+  .cap { border:1px solid var(--line); border-radius:999px; padding:3px 10px; font-size:12px; background:#fff; }
+  .cap.on { background:var(--ok-bg); border-color:#9FE1CB; color:var(--ok); }
+  .cap.off { background:#F5F4F0; color:var(--hint); }
+  .layout { display:grid; grid-template-columns:400px minmax(0,1fr); gap:20px; align-items:start; }
+  @media (max-width:900px){ .layout{ grid-template-columns:1fr; } }
+  .card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-bottom:16px; }
+  label { display:block; font-size:13px; font-weight:500; margin:12px 0 5px; }
+  label:first-child { margin-top:0; }
+  input[type=text], select { width:100%; padding:8px 10px; border:1px solid var(--line);
+         border-radius:8px; font-size:13px; font-family:inherit; background:#fff; color:var(--ink); }
+  input[type=text]:focus, select:focus { outline:2px solid var(--accent-bg); border-color:var(--accent); }
+  button { padding:8px 15px; border:1px solid var(--line); border-radius:8px; background:#fff;
+           font-size:13px; font-family:inherit; cursor:pointer; color:var(--ink); }
+  button:hover:not(:disabled) { border-color:var(--muted); background:#FBFAF8; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:500; }
+  button.primary:hover:not(:disabled) { background:#0C447C; border-color:#0C447C; }
+  button.tiny { padding:3px 9px; font-size:12px; }
+  .row { display:flex; gap:8px; align-items:center; }
+  .row > input { flex:1; min-width:0; }
+  .radio-group { display:flex; flex-direction:column; gap:7px; }
+  .radio-item { display:flex; gap:9px; align-items:flex-start; padding:9px 11px; border:1px solid var(--line);
+                border-radius:8px; cursor:pointer; }
+  .radio-item:hover { border-color:var(--muted); }
+  .radio-item.sel { border-color:var(--accent); background:var(--accent-bg); }
+  .radio-item input { margin-top:3px; flex:0 0 auto; }
+  .radio-item .t { font-size:13px; font-weight:500; }
+  .radio-item .d { font-size:12px; color:var(--muted); }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:12px; }
+  .metric { background:#F5F4F0; border-radius:8px; padding:10px 12px; }
+  .metric .v { font-size:19px; font-weight:600; }
+  .metric .l { font-size:12px; color:var(--muted); }
+  .bar { height:7px; background:#EDEBE6; border-radius:999px; overflow:hidden; margin-top:10px; }
+  .bar > i { display:block; height:100%; background:var(--accent); width:0; transition:width .3s; }
+  .log { background:#FBFAF8; border:1px solid var(--line); border-radius:8px; padding:10px 12px;
+         max-height:230px; overflow:auto; font-family:"Cascadia Mono",Consolas,monospace;
+         font-size:12px; line-height:1.75; }
+  .log div { white-space:pre-wrap; word-break:break-all; }
+  .plist { max-height:340px; overflow:auto; border:1px solid var(--line); border-radius:8px; }
+  .pitem { display:flex; gap:10px; align-items:center; padding:9px 12px; border-bottom:1px solid #F1EFE8; }
+  .pitem:last-child { border-bottom:0; }
+  .pitem:hover { background:#FBFAF8; }
+  .pitem input { flex:0 0 auto; }
+  .pitem .info { flex:1; min-width:0; }
+  .pitem .nm { font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pitem .mt { font-size:12px; color:var(--muted); }
+  .tag { display:inline-block; background:#EEEDFE; color:#534AB7; border-radius:5px;
+         padding:1px 7px; font-size:11px; margin-right:5px; }
+  .result { border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:10px; background:#fff; }
+  .result .hd { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .result .nm { font-size:14px; font-weight:600; }
+  .badge { border-radius:999px; padding:2px 10px; font-size:12px; }
+  .badge.ok { background:var(--ok-bg); color:var(--ok); }
+  .badge.bad { background:var(--err-bg); color:var(--err); }
+  .actions { display:flex; gap:7px; margin-top:9px; flex-wrap:wrap; }
+  .empty { text-align:center; padding:36px 20px; color:var(--hint); font-size:13px; }
+  .steps { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+  .step { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); }
+  .step .n { width:20px; height:20px; border-radius:50%; background:#EDEBE6; color:var(--muted);
+             display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; }
+  .step.act .n { background:var(--accent); color:#fff; }
+  .step.act { color:var(--ink); font-weight:500; }
+  .note { background:var(--warn-bg); border:1px solid #EF9F27; border-radius:8px;
+          padding:10px 13px; font-size:12.5px; color:var(--warn); margin-top:10px; }
+  .note a { color:var(--warn); }
+  .hidden { display:none !important; }
+  iframe { width:100%; height:640px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+  .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:#2C2C2A;
+           color:#fff; padding:9px 18px; border-radius:8px; font-size:13px; z-index:99; opacity:0;
+           transition:opacity .25s; pointer-events:none; }
+  .toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div>
+      <h1>AutoCut 操作台</h1>
+      <div class="muted" style="font-size:13px">地板铺装视频智能剪辑 · 素材 → 选片 → 文案 → 配乐 → 剪映草稿</div>
+    </div>
+    <div>
+      <div class="hint" style="text-align:right;margin-bottom:5px">本机能力</div>
+      <div class="caps" id="caps"></div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step act" id="step1"><span class="n">1</span>选择素材来源</div>
+    <div class="step" id="step2"><span class="n">2</span>勾选要剪的项目</div>
+    <div class="step" id="step3"><span class="n">3</span>生成草稿</div>
+    <div class="step" id="step4"><span class="n">4</span>看预览 · 进剪映</div>
+  </div>
+
+  <div class="layout">
+
+    <div>
+      <div class="card">
+        <h2>素材从哪来</h2>
+        <div class="radio-group" id="sources">
+          <label class="radio-item sel" data-kind="local">
+            <input type="radio" name="src" value="local" checked>
+            <span>
+              <span class="t">电脑上的文件夹（推荐）</span>
+              <span class="d">配合剪映专业版「我的云空间」下载素材，目录按「月份/项目」两级摆放</span>
+            </span>
+          </label>
+          <label class="radio-item" data-kind="capcut-web">
+            <input type="radio" name="src" value="capcut-web">
+            <span>
+              <span class="t">剪映云空间（网页端）</span>
+              <span class="d">列出网页端的云端草稿/项目；看不到手机 App 云空间里的原始素材</span>
+            </span>
+          </label>
+          <label class="radio-item" data-kind="mock">
+            <input type="radio" name="src" value="mock">
+            <span>
+              <span class="t">演示数据</span>
+              <span class="d">没有素材时先看看效果，不需要任何文件</span>
+            </span>
+          </label>
+        </div>
+
+        <div id="localBox">
+          <label>素材根目录</label>
+          <div class="row">
+            <input type="text" id="localPath" placeholder="例如 D:\素材\地板">
+            <button class="tiny" id="pickDir">选择…</button>
+          </div>
+          <div class="hint" style="margin-top:6px">目录内部要按 <span class="mono">月份/项目/视频</span> 两级组织</div>
+          <div class="row" style="margin-top:8px">
+            <button class="tiny" id="btnOpenMaterials">打开素材库目录</button>
+            <span class="hint mono" id="materialsPath"></span>
+          </div>
+          <div class="hint" style="margin-top:6px">推荐用法：剪映专业版左侧「我的云空间」→ 下载到本地时，保存位置直接选上面的素材库 → 下载完回到这里点「读取项目列表」</div>
+        </div>
+
+        <div id="cloudBox" class="hidden">
+          <label>云空间账号</label>
+          <div class="row">
+            <button class="tiny" id="btnLogin">扫码登录剪映</button>
+            <button class="tiny" id="btnRecord">校准云空间页面</button>
+            <span class="hint" id="loginState">未登录</span>
+          </div>
+          <div class="hint" style="margin-top:6px">网页端只能看到「云端草稿/项目」，看不到手机 App 云空间里的原始素材（实测）。原始素材请用电脑版剪映左侧「我的云空间」下载，再走「电脑上的文件夹」模式</div>
+        </div>
+
+        <label>只剪某个月份（可留空）</label>
+        <input type="text" id="monthFilter" placeholder="例如 2026-09，多个用逗号隔开">
+
+        <label>文案模板</label>
+        <div class="row">
+          <select id="templateSel" style="flex:1"><option value="">用默认模板</option></select>
+          <button class="tiny" id="openTplDir">打开目录</button>
+        </div>
+
+        <label>背景音乐</label>
+        <div class="row">
+          <select id="musicSel" style="flex:1"><option value="">自动匹配</option></select>
+          <button class="tiny" id="openMusicDir">打开目录</button>
+        </div>
+
+        <button class="primary" id="btnDiscover" style="width:100%;margin-top:18px">读取项目列表</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+          <h2 style="margin:0">项目列表</h2>
+          <div class="row">
+            <button class="tiny" id="btnAll">全选</button>
+            <button class="tiny" id="btnNone">全不选</button>
+          </div>
+        </div>
+        <div id="projects"><div class="empty">先选好素材来源，点「读取项目列表」</div></div>
+
+        <button class="primary" id="btnRun" style="width:100%;margin-top:14px" disabled>开始生成草稿</button>
+        <div id="runNote" class="note hidden"></div>
+      </div>
+
+      <div class="card hidden" id="progressCard">
+        <h2>生成进度</h2>
+        <div class="row" style="justify-content:space-between">
+          <span class="mono" id="taskStatus">准备中…</span>
+          <button class="tiny" id="btnCancel">停止</button>
+        </div>
+        <div class="bar"><i id="progressBar"></i></div>
+        <div class="metrics">
+          <div class="metric"><div class="v" id="mTotal">0</div><div class="l">项目总数</div></div>
+          <div class="metric"><div class="v" id="mDone">0</div><div class="l">已完成</div></div>
+          <div class="metric"><div class="v" id="mClips">0</div><div class="l">镜头总数</div></div>
+          <div class="metric"><div class="v" id="mSec">0s</div><div class="l">耗时</div></div>
+        </div>
+        <h3 style="margin-top:14px">运行日志</h3>
+        <div class="log" id="log"></div>
+      </div>
+
+      <div class="card hidden" id="resultCard">
+        <h2>生成结果</h2>
+        <div id="results"></div>
+      </div>
+
+      <div class="card hidden" id="previewCard">
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+          <h2 style="margin:0" id="previewTitle">分镜预览</h2>
+          <button class="tiny" id="btnPreviewNew">在新窗口打开</button>
+        </div>
+        <iframe id="previewFrame" src="about:blank"></iframe>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+          <h2 style="margin:0">已生成的草稿</h2>
+          <button class="tiny" id="btnRefreshDrafts">刷新</button>
+        </div>
+        <div id="drafts"><div class="empty">还没有草稿</div></div>
+        <div class="hint" style="margin-top:8px">
+          草稿在剪映里打开后可以精修。若没自动出现在剪映里，点「打开草稿目录」把文件夹拷进剪映草稿目录。
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+let currentSource = "local";
+let WORKSPACE = "";
+let discovered = [];
+let pollTimer = null;
+
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+async function api(path, opts) {
+  const res = await fetch(path, Object.assign({ headers: {"Content-Type": "application/json"} }, opts || {}));
+  const data = await res.json().catch(() => ({ok:false, error:"返回不是合法 JSON"}));
+  if (!res.ok || data.ok === false) throw new Error(data.error || ("请求失败 " + res.status));
+  return data.data;
+}
+
+function setSteps(n) {
+  for (let i = 1; i <= 4; i++) $("#step"+i).classList.toggle("act", i <= n);
+}
+
+// ---------- 初始化 ----------
+async function init() {
+  try {
+    const s = await api("/api/status");
+    WORKSPACE = String(s.workspace || "").replace(/[\\/]+$/, "");
+    $("#materialsPath").textContent = WORKSPACE ? WORKSPACE + "\\materials" : "";
+    if (WORKSPACE && !$("#localPath").value.trim()) {
+      $("#localPath").value = WORKSPACE + "\\materials";   // 默认填素材库，免手输
+    }
+    renderCaps(s.capabilities);
+    $("#loginState").textContent = s.draft_count > 0 ? ("已生成 " + s.draft_count + " 个草稿") : "未登录";
+    renderDrafts();
+  } catch (e) { toast("读取状态失败：" + e.message); }
+  loadTemplates();
+}
+
+function renderCaps(caps) {
+  const box = $("#caps");
+  box.innerHTML = "";
+  let list = [];
+  if (Array.isArray(caps)) list = caps;
+  else if (caps && typeof caps === "object") list = Object.values(caps);
+  if (!list.length) { box.innerHTML = '<span class="cap off">能力未知</span>'; return; }
+  list.forEach(c => {
+    if (!c || typeof c !== "object") return;
+    const name = c.name || c.key || "";
+    const ok = c.available === true || c.available === "yes" || c.status === "ok";
+    if (!name) return;
+    const el = document.createElement("span");
+    el.className = "cap " + (ok ? "on" : "off");
+    el.textContent = (ok ? "✓ " : "○ ") + name;
+    el.title = c.impact || c.detail || "";
+    box.appendChild(el);
+  });
+}
+
+async function loadTemplates() {
+  try {
+    const o = await api("/api/options");
+    window.TPL_DIR = o.templates_dir || "";
+    window.MUSIC_DIR = o.music_dir || "";
+    const tsel = $("#templateSel");
+    const msel = $("#musicSel");
+    tsel.innerHTML = '<option value="">用默认模板</option>' +
+      o.templates.map(t => '<option value="' + esc(t.id) + '">' + esc(t.name) + '</option>').join("");
+    msel.innerHTML = '<option value="">自动匹配</option>' +
+      o.music.map(m => {
+        const label = m.name + (m.available ? "" : "（文件缺失）");
+        return '<option value="' + esc(m.id) + '"' + (m.available ? "" : " disabled") + '>' + esc(label) + '</option>';
+      }).join("");
+  } catch (e) { /* 下拉为空时的降级：用默认 */ }
+}
+
+// ---------- 来源切换 ----------
+document.querySelectorAll(".radio-item[data-kind]").forEach(el => {
+  el.addEventListener("click", () => {
+    document.querySelectorAll(".radio-item[data-kind]").forEach(x => x.classList.remove("sel"));
+    el.classList.add("sel");
+    el.querySelector("input").checked = true;
+    currentSource = el.dataset.kind;
+    $("#localBox").classList.toggle("hidden", currentSource !== "local");
+    $("#cloudBox").classList.toggle("hidden", currentSource !== "capcut-web");
+    $("#btnDiscover").disabled = false;
+  });
+});
+
+// ---------- 选择目录 ----------
+$("#pickDir").addEventListener("click", async () => {
+  $("#pickDir").disabled = true;
+  $("#pickDir").textContent = "选择中…";
+  try {
+    const d = await api("/api/pick-dir", { method:"POST", body: JSON.stringify({ initial: $("#localPath").value }) });
+    if (d.path) { $("#localPath").value = d.path; toast("已选择：" + d.path); }
+    else toast("未选择目录（可直接手动输入路径）");
+  } catch (e) { toast("打开选择框失败：" + e.message); }
+  finally { $("#pickDir").disabled = false; $("#pickDir").textContent = "选择…"; }
+});
+
+// ---------- 打开模板/音乐目录 ----------
+$("#openTplDir").addEventListener("click", () => {
+  if (!window.TPL_DIR) { toast("模板目录暂不可用"); return; }
+  openPath(window.TPL_DIR);
+});
+$("#openMusicDir").addEventListener("click", () => {
+  if (!window.MUSIC_DIR) { toast("音乐目录暂不可用"); return; }
+  openPath(window.MUSIC_DIR);
+});
+
+// ---------- 打开素材库目录 ----------
+$("#btnOpenMaterials").addEventListener("click", async () => {
+  if (!WORKSPACE) { toast("还没拿到工作区路径，请稍后再试"); return; }
+  const p = WORKSPACE + "\\materials";
+  try {
+    await api("/api/open", { method:"POST", body: JSON.stringify({ path: p }) });
+    toast("已打开素材库目录");
+  } catch (e) { toast("打开失败：" + e.message); }
+});
+
+// ---------- 登录 ----------
+$("#btnLogin").addEventListener("click", async () => {
+  const btn = $("#btnLogin");
+  btn.disabled = true;
+  btn.textContent = "等待扫码…";
+  $("#progressCard").classList.remove("hidden");
+  $("#resultCard").classList.add("hidden");
+  $("#log").innerHTML = "";
+  try {
+    const r = await api("/api/login", { method:"POST", body: JSON.stringify({ wait_sec: 180 }) });
+    poll(r.task_id, "login");
+  } catch (e) {
+    toast("登录启动失败：" + e.message);
+    $("#runNote").classList.remove("hidden");
+    $("#runNote").innerHTML = '扫码登录需要先安装 Playwright：'
+      + '<br><span class="mono">pip install playwright</span>'
+      + '<br><span class="mono">playwright install chromium</span>'
+      + '<br>安装后重试，或改用「电脑上的文件夹」模式。';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "扫码登录剪映";
+  }
+});
+
+// ---------- 云空间页面校准 ----------
+$("#btnRecord").addEventListener("click", async () => {
+  const btn = $("#btnRecord");
+  btn.disabled = true;
+  btn.textContent = "录制中…";
+  $("#progressCard").classList.remove("hidden");
+  $("#log").innerHTML = "";
+  try {
+    const r = await api("/api/record", { method:"POST", body: JSON.stringify({ seconds: 120 }) });
+    poll(r.task_id, "record");
+  } catch (e) {
+    toast("校准启动失败：" + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "校准云空间页面";
+  }
+});
+
+// ---------- 读取项目 ----------
+$("#btnDiscover").addEventListener("click", async () => {
+  const months = $("#monthFilter").value.split(",").map(s => s.trim()).filter(Boolean);
+  let srcPath = $("#localPath").value.trim();
+  if (currentSource === "local" && !srcPath && WORKSPACE) {
+    srcPath = WORKSPACE + "\\materials";   // 兜底：默认用素材库
+    $("#localPath").value = srcPath;
+  }
+  const body = { source: currentSource, path: srcPath, months };
+  $("#btnDiscover").disabled = true;
+  $("#btnDiscover").textContent = "读取中…";
+  $("#projects").innerHTML = '<div class="empty">正在读取…</div>';
+  try {
+    const items = await api("/api/projects?source=" + encodeURIComponent(currentSource)
+      + "&path=" + encodeURIComponent(body.path)
+      + months.map(m => "&month=" + encodeURIComponent(m)).join(""));
+    discovered = items;
+    renderProjects(items);
+    setSteps(2);
+  } catch (e) {
+    $("#projects").innerHTML = '<div class="empty">读取失败：' + e.message + '</div>';
+  } finally {
+    $("#btnDiscover").disabled = false;
+    $("#btnDiscover").textContent = "读取项目列表";
+  }
+});
+
+function renderProjects(items) {
+  const box = $("#projects");
+  const note = $("#runNote");
+  if (!items.length) {
+    box.innerHTML = '<div class="empty">没发现项目。<br>'
+      + (currentSource === "local"
+          ? '请确认目录里有「月份/项目/视频」两级结构'
+          : '请先扫码登录，或确认云空间里有项目') + '</div>';
+    $("#btnRun").disabled = true;
+    return;
+  }
+  box.innerHTML = '<div class="plist">' + items.map((p, i) => `
+    <div class="pitem">
+      <input type="checkbox" data-i="${i}" checked>
+      <div class="info">
+        <div class="nm">${esc(p.name)}</div>
+        <div class="mt">${p.month ? '<span class="tag">' + esc(p.month) + '</span>' : ''}${p.material_count ? p.material_count + ' 个素材' : '素材数待读取'}</div>
+      </div>
+    </div>`).join("") + '</div>';
+  box.querySelectorAll("input[type=checkbox]").forEach(cb => {
+    cb.addEventListener("change", updateRunState);
+  });
+  $("#btnRun").disabled = false;
+  if (currentSource === "capcut-web") {
+    note.classList.remove("hidden");
+    note.innerHTML = '云空间读取依赖页面选择器校准。若项目列表为空或不全，请在命令行跑 '
+      + '<span class="mono">python run.py capcut-record</span> 完成一次校准。';
+  } else { note.classList.add("hidden"); }
+  updateRunState();
+}
+
+function selectedProjects() {
+  const out = [];
+  document.querySelectorAll("#projects input[type=checkbox]").forEach(cb => {
+    if (cb.checked && discovered[+cb.dataset.i]) out.push(discovered[+cb.dataset.i].id);
+  });
+  return out;
+}
+
+function updateRunState() {
+  const n = selectedProjects().length;
+  $("#btnRun").disabled = n === 0;
+  $("#btnRun").textContent = n ? ("开始生成草稿（已选 " + n + " 个）") : "开始生成草稿";
+}
+
+$("#btnAll").addEventListener("click", () => { document.querySelectorAll("#projects input[type=checkbox]").forEach(c => c.checked = true); updateRunState(); });
+$("#btnNone").addEventListener("click", () => { document.querySelectorAll("#projects input[type=checkbox]").forEach(c => c.checked = false); updateRunState(); });
+
+// ---------- 跑任务 ----------
+$("#btnRun").addEventListener("click", async () => {
+  const projects = selectedProjects();
+  if (!projects.length) { toast("请先勾选至少一个项目"); return; }
+  const body = {
+    source: currentSource,
+    path: $("#localPath").value.trim(),
+    months: $("#monthFilter").value.split(",").map(s => s.trim()).filter(Boolean),
+    projects,
+    template_id: $("#templateSel").value,
+    music_id: $("#musicSel").value,
+  };
+  $("#btnRun").disabled = true;
+  try {
+    const r = await api("/api/run", { method:"POST", body: JSON.stringify(body) });
+    $("#progressCard").classList.remove("hidden");
+    $("#resultCard").classList.add("hidden");
+    $("#log").innerHTML = "";
+    setSteps(3);
+    poll(r.task_id);
+  } catch (e) {
+    toast("启动失败：" + e.message);
+    $("#btnRun").disabled = false;
+  }
+});
+
+let lastTaskId = null;
+
+function poll(taskId, kind) {
+  lastTaskId = taskId;
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    try {
+      const t = await api("/api/task/" + taskId);
+      renderTask(t);
+      if (["done","failed","cancelled"].includes(t.status)) {
+        clearInterval(pollTimer);
+        $("#btnRun").disabled = false;
+        updateRunState();
+        if (t.status === "done") {
+          if (kind === "login") {
+            $("#loginState").textContent = "已登录";
+            toast("登录成功，点「读取项目列表」继续");
+            $("#btnDiscover").click();
+          } else if (kind === "record") {
+            toast("校准录制完成！回到 WorkBuddy 对话说「校准完成」，助手会生成配置");
+          } else {
+            setSteps(4);
+            renderResults(t.results);
+            renderDrafts();
+          }
+        } else if (t.status === "failed") {
+          toast("任务失败：" + (t.error || "未知错误").split("\n")[0]);
+        }
+      }
+    } catch (e) {
+      clearInterval(pollTimer);
+      toast("查询进度失败：" + e.message);
+      $("#btnRun").disabled = false;
+    }
+  }, 700);
+}
+
+function renderTask(t) {
+  $("#taskStatus").textContent = ({pending:"排队中",running:"生成中",done:"已完成",
+                                   failed:"失败",cancelled:"已停止"}[t.status] || t.status)
+    + (t.current_project ? " · " + t.current_project : "");
+  $("#mTotal").textContent = t.total;
+  $("#mDone").textContent = t.finished;
+  $("#mClips").textContent = t.results.reduce((s, r) => s + (r.clip_count || 0), 0);
+  $("#mSec").textContent = t.elapsed_sec.toFixed(0) + "s";
+  const pct = t.total ? Math.round(t.finished / t.total * 100) : (t.status === "done" ? 100 : 0);
+  $("#progressBar").style.width = pct + "%";
+  const log = $("#log");
+  log.innerHTML = (t.messages || []).map(m => "<div>" + esc(m) + "</div>").join("");
+  log.scrollTop = log.scrollHeight;
+  if (t.error) log.innerHTML += '<div style="color:#A32D2D">' + esc(t.error) + "</div>";
+}
+
+$("#btnCancel").addEventListener("click", async () => {
+  const tid = currentTaskId();
+  if (!tid) return;
+  try { await api("/api/cancel/" + tid, { method:"POST", body:"{}" }); toast("已请求停止"); }
+  catch (e) { toast("停止失败：" + e.message); }
+});
+
+function currentTaskId() { return lastTaskId; }
+
+// ---------- 结果 ----------
+function renderResults(results) {
+  const box = $("#results");
+  const card = $("#resultCard");
+  if (!results || !results.length) { card.classList.add("hidden"); return; }
+  card.classList.remove("hidden");
+  box.innerHTML = results.map(r => {
+    const ok = r.status === "DRAFT_READY";
+    const warns = (r.warnings || []).slice(0, 3);
+    return `<div class="result">
+      <div class="hd">
+        <span class="nm">${esc(r.project_name)}</span>
+        <span class="badge ${ok ? 'ok' : 'bad'}">${ok ? '草稿已生成' : '失败'}</span>
+      </div>
+      <div class="mt muted" style="font-size:12.5px;margin-top:5px">
+        素材 ${r.material_count} · 候选镜头 ${r.shot_count} · 入选 ${r.selected_count} · 成片 ${(r.duration_sec||0).toFixed(1)}s
+      </div>
+      ${warns.length ? '<div class="hint" style="margin-top:5px">' + warns.map(w => esc(w)).join("<br>") + '</div>' : ''}
+      <div class="actions">
+        ${r.preview_path ? '<button class="tiny" data-preview="' + esc(r.preview_path) + '">看分镜预览</button>' : ''}
+        ${r.draft_path ? '<button class="tiny" data-open="' + esc(r.draft_path) + '">打开草稿目录</button>' : ''}
+        ${r.timeline_path ? '<button class="tiny" data-open="' + esc(r.timeline_path) + '">看时间线 JSON</button>' : ''}
+      </div>
+    </div>`;
+  }).join("");
+  box.querySelectorAll("[data-preview]").forEach(b => b.addEventListener("click", () => showPreview(b.dataset.preview)));
+  box.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => openPath(b.dataset.open)));
+}
+
+function showPreview(path) {
+  const card = $("#previewCard");
+  card.classList.remove("hidden");
+  $("#previewFrame").src = "/api/file?path=" + encodeURIComponent(path);
+  $("#btnPreviewNew").onclick = () => window.open("/api/file?path=" + encodeURIComponent(path), "_blank");
+  card.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+
+async function openPath(path) {
+  try { await api("/api/open", { method:"POST", body: JSON.stringify({ path }) }); toast("已打开"); }
+  catch (e) { toast("打开失败：" + e.message); }
+}
+
+// ---------- 草稿列表 ----------
+async function renderDrafts() {
+  const box = $("#drafts");
+  try {
+    const items = await api("/api/drafts");
+    if (!items.length) { box.innerHTML = '<div class="empty">还没有草稿</div>'; return; }
+    box.innerHTML = items.map(d => `
+      <div class="pitem">
+        <div class="info">
+          <div class="nm">${esc(d.name)}</div>
+          <div class="mt">${d.clip_count} 个镜头 · ${(d.duration_sec||0).toFixed(1)}s</div>
+        </div>
+        <button class="tiny" data-open="${esc(d.path)}">打开目录</button>
+      </div>`).join("");
+    box.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => openPath(b.dataset.open)));
+  } catch (e) {
+    box.innerHTML = '<div class="empty">读取失败：' + esc(e.message) + '</div>';
+  }
+}
+$("#btnRefreshDrafts").addEventListener("click", renderDrafts);
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+init();
+</script>
+</body>
+</html>
